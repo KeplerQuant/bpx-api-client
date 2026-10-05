@@ -163,7 +163,7 @@ mod tests {
                 ("to", "2000"),
                 ("limit", "1000"),
                 ("offset", "0"),
-                ("sort_direction", "Asc"),
+                ("sortDirection", "Asc"),
             ]
         );
     }

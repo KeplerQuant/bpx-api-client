@@ -4,6 +4,8 @@ use rust_decimal::{Decimal, prelude::FromPrimitive};
 use serde::{Deserialize, Deserializer, Serialize, de::Visitor};
 use strum::{Display, EnumString};
 
+use crate::history::SortDirection;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TriggerBy {
     LastPrice,
@@ -159,9 +161,9 @@ pub struct LimitOrder {
 #[serde(rename_all = "PascalCase")]
 pub enum OrderType {
     #[default]
-    #[serde(rename(deserialize = "LIMIT"))]
+    #[serde(alias = "LIMIT")]
     Limit,
-    #[serde(rename(deserialize = "MARKET"))]
+    #[serde(alias = "MARKET")]
     Market,
 }
 
@@ -170,6 +172,105 @@ pub enum OrderType {
 pub enum Order {
     Market(MarketOrder),
     Limit(LimitOrder),
+}
+
+/// An order returned by the order history endpoint.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderHistory {
+    pub id: String,
+    pub created_at: String,
+    pub executed_quantity: Decimal,
+    pub executed_quote_quantity: Decimal,
+    pub expiry_reason: Option<String>,
+    pub order_type: OrderType,
+    pub post_only: Option<bool>,
+    pub price: Option<Decimal>,
+    pub quantity: Option<Decimal>,
+    pub quote_quantity: Option<Decimal>,
+    pub self_trade_prevention: Option<SelfTradePrevention>,
+    pub status: OrderStatus,
+    pub side: Side,
+    pub stop_loss_trigger_price: Option<Decimal>,
+    pub stop_loss_limit_price: Option<Decimal>,
+    pub stop_loss_trigger_by: Option<TriggerBy>,
+    pub symbol: String,
+    pub take_profit_trigger_price: Option<Decimal>,
+    pub take_profit_limit_price: Option<Decimal>,
+    pub take_profit_trigger_by: Option<TriggerBy>,
+    pub time_in_force: Option<TimeInForce>,
+    pub trigger_by: Option<TriggerBy>,
+    pub trigger_price: Option<Decimal>,
+    pub trigger_quantity: Option<TriggerQuantity>,
+    pub client_id: Option<u32>,
+    pub system_order_type: Option<SystemOrderType>,
+    pub strategy_id: Option<String>,
+    pub slippage_tolerance: Option<Decimal>,
+    pub slippage_tolerance_type: Option<SlippageToleranceType>,
+}
+
+/// Parameters for fetching order history.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderHistoryParams {
+    /// Filter by order ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order_id: Option<String>,
+    /// Filter by strategy ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strategy_id: Option<String>,
+    /// Filter by symbol.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub symbol: Option<String>,
+    /// Maximum number of results to return. Default 100, maximum 1000.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u64>,
+    /// Offset for pagination. Default 0.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<u64>,
+    /// Filter by market type.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub market_type: Option<String>,
+    /// Sort direction.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sort_direction: Option<SortDirection>,
+}
+
+impl OrderHistoryParams {
+    pub fn with_order_id<S: Into<String>>(mut self, order_id: S) -> Self {
+        self.order_id = Some(order_id.into());
+        self
+    }
+
+    pub fn with_strategy_id<S: Into<String>>(mut self, strategy_id: S) -> Self {
+        self.strategy_id = Some(strategy_id.into());
+        self
+    }
+
+    pub fn with_symbol<S: Into<String>>(mut self, symbol: S) -> Self {
+        self.symbol = Some(symbol.into());
+        self
+    }
+
+    pub fn with_limit(mut self, limit: u64) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
+    pub fn with_offset(mut self, offset: u64) -> Self {
+        self.offset = Some(offset);
+        self
+    }
+
+    pub fn with_market_type<S: Into<String>>(mut self, market_type: S) -> Self {
+        self.market_type = Some(market_type.into());
+        self
+    }
+
+    pub fn with_sort_direction(mut self, sort_direction: SortDirection) -> Self {
+        self.sort_direction = Some(sort_direction);
+        self
+    }
 }
 
 #[derive(
