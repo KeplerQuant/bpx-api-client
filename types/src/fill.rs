@@ -44,6 +44,7 @@ pub struct Fill {
 }
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FillsHistoryParams {
     /// Filter by symbol
     #[serde(skip_serializing_if = "Option::is_none")]
