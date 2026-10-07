@@ -426,23 +426,23 @@ pub struct KlineUpdate {
 
     /// Open price
     #[serde(rename = "o")]
-    pub open_price: Decimal,
+    pub open_price: Option<Decimal>,
 
     /// Close price
     #[serde(rename = "c")]
-    pub close_price: Decimal,
+    pub close_price: Option<Decimal>,
 
     /// High price
     #[serde(rename = "h")]
-    pub high_price: Decimal,
+    pub high_price: Option<Decimal>,
 
     /// Low price
     #[serde(rename = "l")]
-    pub low_price: Decimal,
+    pub low_price: Option<Decimal>,
 
     /// Base asset volume
     #[serde(rename = "v")]
-    pub volume: Decimal,
+    pub volume: Option<Decimal>,
 
     /// Number of trades
     #[serde(rename = "n")]
@@ -705,7 +705,22 @@ mod test {
         let kline_update: KlineUpdate = serde_json::from_str(data).unwrap();
         assert_eq!(kline_update.symbol, "SOL_USD".to_string());
         assert_eq!(kline_update.start_time, 123400000);
-        assert_eq!(kline_update.open_price, dec!(18.75));
+        assert_eq!(kline_update.open_price, Some(dec!(18.75)));
+    }
+
+    #[test]
+    fn test_gap_kline_update_parse() {
+        let data = r#"{"E":1791347760008661,"T":1791347760000,"X":true,"c":null,"e":"kline","h":null,"l":null,"n":0,"o":null,"s":"BTC_USDC_PERP","t":1791347700000,"v":null}"#;
+
+        let kline_update: KlineUpdate = serde_json::from_str(data).unwrap();
+        assert_eq!(kline_update.symbol, "BTC_USDC_PERP");
+        assert_eq!(kline_update.trades, 0);
+        assert!(kline_update.is_closed);
+        assert_eq!(kline_update.open_price, None);
+        assert_eq!(kline_update.close_price, None);
+        assert_eq!(kline_update.high_price, None);
+        assert_eq!(kline_update.low_price, None);
+        assert_eq!(kline_update.volume, None);
     }
 
     #[test]
